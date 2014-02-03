@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler'
+Bundler.require
+
+content = ARGV[0] || STDIN.read
+
+puts QRCode::CLI.new(content).to_s
