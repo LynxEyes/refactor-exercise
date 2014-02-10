@@ -22,49 +22,53 @@ module QRCode
     end
 
     def determine_size
-      character_count_list.find_index(
+      character_count_list(:byte).find_index(
         smallest_character_count
       ) + 1
     end
 
     def convert_to_ascii(grid)
-      grid = add_margins(grid)
-      grid = map_squares(grid)
-      grid = grid.map { |row| row.join }.join("\n")
-      grid + "\n" + default_color
-    end
+      tmp_grid = Array.new(margin, Array.new(grid.first.length, false))
+      tmp_grid += grid
+      tmp_grid += Array.new(margin, Array.new(grid.first.length, false))
 
-    private
-
-    def add_margins(grid)
-      grid = x_margin(grid) + grid + x_margin(grid)
-      grid.map do |row|
-        y_margin + row + y_margin
+      tmp_grid = tmp_grid.map do |row|
+        [false] * margin +
+        row +
+        [false] * margin
       end
-    end
 
-    def map_squares(grid)
-      grid.map do |row|
-        row.map { |square| square ? dark_square : light_square }
+      tmp_grid = tmp_grid.map do |row|
+        row.map do |square|
+          if square == true
+            dark_square
+          elsif square == false
+            light_square
+          end
+        end
       end
-    end
 
-    def x_margin(grid)
-      Array.new(margin, Array.new(grid.first.length, false))
-    end
+      tmp_grid = tmp_grid.map { |row| row.join }.join("\n")
+      tmp_grid += "\n" + default_color
 
-    def y_margin
-      [false] * margin
+      tmp_grid
     end
 
     def smallest_character_count
-      character_count_list.find do |character_count|
+      character_count_list(:byte).find do |character_count|
         @content.size < character_count
       end
     end
 
-    def character_count_list
-      CAPACITY[error_correction][:byte]
+    def character_count_list(type)
+      case type
+      when :byte
+        CAPACITY[error_correction][:byte]
+      when :alphanumeric
+        CAPACITY[error_correction][:alphanumeric]
+      when :numeric
+        CAPACITY[error_correction][:numeric]
+      end
     end
 
     def get_grid

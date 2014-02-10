@@ -1,0 +1,12 @@
+Can we do more than refactor a big method?
+
+Credibly bad code to refactor
+
+ - Huge case statement...
+ - Incorrectly formated
+ - Poorly named methods
+ - Mixing levels of abstraction
+ - Lots of temp vars
+ - Law of demeter
+ - Nested conditionals
+ - Badly written conditionals
