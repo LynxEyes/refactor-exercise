@@ -1,109 +1,78 @@
-require "rqrcode"
-require "qrcode/version"
-
-# http://en.wikipedia.org/wiki/QR_Code
-#
-# QR Code Terminology
-#
-# Module:
-#   Square dots in contasting color making up a grid
-#
-# Version:
-#   The size of the grid in modules. Version can be 1 through 40.
-#   Version 1 = 21x21 modules, version 2 = 25x25... version 40 = 177x177.
-#
-# Level:
-#   The error correcting level.
-#   L = Low (7%)
-#   M = Medium (15%)
-#   Q = Quartile (25%)
-#   H = High (30%)
-#
+require 'rqrcode'
+require 'qrcode/version'
+require 'qrcode/capacity'
 
 module QRCode
   class CLI
+    attr_reader :dark_square, :light_square, :margin,
+      :size, :error_correction, :default_color
+
     def initialize(content, options = {})
       @content = content
-      @dark = options[:dark]
-      @light = options[:light]
-      @level = options[:level]
-      @version = options[:version]
-    end
-
-    def dark_module
-      (@dark || "\e[40m") + '  '
-    end
-
-    def light_module
-      (@light || "\e[107m") + '  '
-    end
-
-    def default_color
-      "\e[0m"
-    end
-
-    def level
-      @level || :l
-    end
-
-    def version
-      @version || 1
+      @margin = options.fetch(:margin, 1)
+      @size = options.fetch(:size, 1)
+      @dark_square = options.fetch(:dark_square, "\e[40m  ")
+      @light_square = options.fetch(:light_square, "\e[107m  ")
+      @default_color = options.fetch(:default_color, "\e[0m")
+      @error_correction = options.fetch(:error_correction, :l)
     end
 
     def to_s
-      size = version
-      begin
-        qr_code = RQRCode::QRCode.new(@content, size: size, level: level)
-      rescue RQRCode::QRCodeRunTimeError => e
-        # If the requested size is not big enough to encode content
-        # try one size bigger.
-        size += 1
-        raise e if size > 40
-        retry
-      end
-      convert_to_ascii(qr_code.modules)
+      convert_to_ascii(get_grid)
+    end
+
+    def determine_size
+      character_count_list.find_index(
+        smallest_character_count
+      ) + 1
     end
 
     def convert_to_ascii(grid)
-      string = ''
-      grid.each_with_index do |row, index|
-        # Add the top quite zone
-        if index == 0
-          2.times do
-            (row.length + 4).times do
-              string += light_module
-            end
-            string += "\n"
-          end
-        end
+      grid = add_margins(grid)
+      grid = map_squares(grid)
+      grid = grid.map { |row| row.join }.join("\n")
+      grid + "\n" + default_color
+    end
 
-        # Add quite zone to the left of this row
-        string += (light_module + light_module)
+    private
 
-        # Add the QR Modules
-        row.each do |mod|
-          if mod == true
-            string += dark_module
-          else
-            string += light_module
-          end
-        end
-
-        # Add quite zone to the right of this row
-        string += (light_module + light_module)
-        string += "\n"
-
-        # Add the bottom quite zone
-        if index == grid.length - 1
-          2.times do
-            (row.length + 4).times do
-              string += light_module
-            end
-            string += "\n"
-          end
-        end
+    def add_margins(grid)
+      grid = x_margin(grid) + grid + x_margin(grid)
+      grid.map do |row|
+        y_margin + row + y_margin
       end
-      string.chomp + default_color
+    end
+
+    def map_squares(grid)
+      grid.map do |row|
+        row.map { |square| square ? dark_square : light_square }
+      end
+    end
+
+    def x_margin(grid)
+      Array.new(margin, Array.new(grid.first.length, false))
+    end
+
+    def y_margin
+      [false] * margin
+    end
+
+    def smallest_character_count
+      character_count_list.find do |character_count|
+        @content.size < character_count
+      end
+    end
+
+    def character_count_list
+      CAPACITY[error_correction][:byte]
+    end
+
+    def get_grid
+      RQRCode::QRCode.new(
+        @content,
+        size: determine_size,
+        level: error_correction
+      ).modules
     end
   end
 end

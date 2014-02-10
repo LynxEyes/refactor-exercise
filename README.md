@@ -1,6 +1,20 @@
 # Qrcode
 
-TODO: Write a gem description
+http://en.wikipedia.org/wiki/QR_Code
+
+QR Code Terminology
+
+Size:
+  The size of the grid in squares. 1 through 40.
+  Version 1 = 21x21 modules, version 2 = 25x25... version 40 = 177x177.
+  http://www.qrcode.com/en/about/version.html
+
+Error Correction:
+  L = Low (7%)
+  M = Medium (15%)
+  Q = Quartile (25%)
+  H = High (30%)
+
 
 ## Installation
 
@@ -18,7 +32,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+    qrcode 17EvhngPHqzYpJMjrn2t8TST9prvr3RgMd
 
 ## Contributing
 

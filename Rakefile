@@ -1,9 +1,6 @@
 require "bundler/gem_tasks"
-require 'rake/testtask'
+require 'rspec/core/rake_task'
 
-task :spec do
-  $LOAD_PATH.unshift('lib', 'spec')
-  Dir.glob('./spec/**/*_spec.rb') { |f| require f }
-end
+RSpec::Core::RakeTask.new
 
 task default: :spec
