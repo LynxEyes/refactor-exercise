@@ -16,36 +16,37 @@ module QRCode
     end
 
     def to_s
-      if @grid
-        grid = @grid
-      else
-        grid = Encoder.new(@content).grid
-      end
+      grid = @grid ? @grid : Encoder.new(@content).grid
 
-      tmp_grid = Array.new(margin, Array.new(grid.first.length, false))
-      tmp_grid += grid
-      tmp_grid += Array.new(margin, Array.new(grid.first.length, false))
-
-      tmp_grid = tmp_grid.map do |row|
-        [false] * margin +
-        row +
-        [false] * margin
-      end
-
-      tmp_grid = tmp_grid.map do |row|
+      # Sets each square to light or dark
+      grid = grid.map do |row|
         row.map do |square|
-          if square == true
-            dark_square
-          elsif square == false
-            light_square
-          end
+          square ? dark_square : light_square
         end
       end
 
-      tmp_grid = tmp_grid.map { |row| row.join }.join("\n")
-      tmp_grid += "\n" + default_color
+      # Add top, bottom margin
+      horizontal_margin = Array.new(margin, Array.new(grid.first.length, light_square))
+      grid = add_margin(grid, horizontal_margin)
 
-      tmp_grid
+      # Add left, right margin
+      vertical_margin = [light_square] * margin
+      grid = grid.map do |row|
+        add_margin(row, vertical_margin)
+      end
+
+      cleanup(grid)
+    end
+
+    private
+
+    def add_margin(grid_or_row, margin)
+      margin + grid_or_row + margin
+    end
+
+    def cleanup(str)
+      str = str.map { |row| row.join }.join("\n")
+      str + "\n" + default_color
     end
   end
 end
