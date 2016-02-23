@@ -13,40 +13,12 @@ describe QRCode::CLI do
   end
 
   describe '#to_s' do
-    let(:grid) do
-      [
-        [ true,  false, true,  false, true  ],
-        [ false, false, false, false, true  ],
-        [ true,  true,  false, true,  false ],
-        [ false, false, true,  false, true  ],
-        [ true,  false, false, true,  false ],
-      ]
-    end
+    let(:content) { 'hello world' }
+    subject { described_class.new(content) }
 
-    let(:options) do
-      {
-        light_square: '[]',
-        dark_square: '  ',
-        default_color: '',
-        grid: grid
-      }
-    end
-
-    let(:qr_code) { QRCode::CLI.new('http://goodguide.com', options) }
-
-    it 'converts an array of bolean values to light and dark squares' do
-      ascii =  "[][][][][][][]\n"
-      ascii += "[]  []  []  []\n"
-      ascii += "[][][][][]  []\n"
-      ascii += "[]    []  [][]\n"
-      ascii += "[][][]  []  []\n"
-      ascii += "[]  [][]  [][]\n"
-      ascii += "[][][][][][][]\n"
-      puts ascii
-
-      expect(qr_code.to_s).to eq(ascii)
+    it 'delegates to_s to grid' do
+      expect(subject.grid).to receive(:to_s)
+      subject.to_s
     end
   end
 end
-
-

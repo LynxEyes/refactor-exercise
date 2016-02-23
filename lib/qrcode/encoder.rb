@@ -7,7 +7,7 @@ module QRCode
       @content = content
     end
 
-    def grid
+    def data
       RQRCode::QRCode.new(
         @content,
         size: size,
